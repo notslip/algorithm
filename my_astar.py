@@ -16,7 +16,7 @@ class Node:
         return self.position == other.position
 
 
-def _return_path(current_node: Node) -> Tuple[List, int]:
+def _return_path(current_node: Node) -> List:
     """
     returns a list containing the coordinates of each point in the path,
     and the amount of "fuel" spent on the way
@@ -25,21 +25,11 @@ def _return_path(current_node: Node) -> Tuple[List, int]:
     """
     ret_path = []
     current = current_node
-    fuel = 0
     while current is not None:
-        #подсчет топлива затраченного на подьем или спуск на текущую ячейку
-        #если высота текущей ячейки равна предыдущей, то топливо тратится
-        #только на переход ячейки, а это равно количество ходов
-        if current.parent:
-            if current.cost > current.parent.cost:
-                fuel += current.cost - current.parent.cost
-            elif current.cost < current.parent.cost:
-                fuel += current.parent.cost - current.cost
-        #добавление в список пути текущей ячейки
         ret_path.append(current)
         #делаем родителя текущей ячейки, текущей ячейкой)))
         current = current.parent
-    return ret_path[::-1], fuel+len(ret_path)-1
+    return ret_path[::-1]
 
 
 def _generate_children(current_node: Node, maze: List) -> List:
@@ -90,8 +80,14 @@ def _consider_child(children: List, current_node: Node,
             if child == closed_child:
                 continue
         # создаем значения коофициэнтов
-        # сумма пути + высота каждой точки
-        child.g += current_node.g + 1 + child.cost
+        # сумма пути + разница высот каждой точки
+        if child.cost > child.parent.cost:
+            fuel = child.cost - child.parent.cost
+        elif child.cost < child.parent.cost:
+            fuel = child.parent.cost - child.cost
+        elif child.cost == child.parent.cost:
+            fuel = 0
+        child.g += current_node.g + 1 + fuel
         # "прямое" расстояние до конечной точки
         child.h = ((child.position[0] - end_node.position[0]) ** 2) + (
                 (child.position[1] - end_node.position[1]) ** 2)
@@ -134,9 +130,10 @@ def search(start: Tuple, end: Tuple, maze: List[List]) -> Tuple[List, int]:
         # удаляем из списка для посещения и добавляем в список посещенных точек
         open_list.pop(current_index)
         closed_list.append(current_node)
-        # условие конца программы, пердаем в функцию для подсчета пути и топлива
+        # условие конца программы,
+        # пердаем в функцию для подсчета пути и возвращаем путь и топливо
         if current_node == end_node:
-            return _return_path(current_node)
+            return _return_path(current_node), current_node.g
         # генерируем дочерние точки для посещения
         children = _generate_children(current_node, maze)
         #считаем для точек детей их "стоимость"
