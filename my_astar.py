@@ -27,12 +27,14 @@ def _return_path(current_node: Node) -> Tuple[List, int]:
     current = current_node
     fuel = 0
     while current is not None:
-        #подсчет топлива затраченного на подьем на текущую ячейку
-        #если текущая ячейка меньше или равна предыдущей то топливо тратится
+        #подсчет топлива затраченного на подьем или спуск на текущую ячейку
+        #если высота текущей ячейки равна предыдущей, то топливо тратится
         #только на переход ячейки, а это равно количество ходов
         if current.parent:
             if current.cost > current.parent.cost:
                 fuel += current.cost - current.parent.cost
+            elif current.cost < current.parent.cost:
+                fuel += current.parent.cost - current.cost
         #добавление в список пути текущей ячейки
         ret_path.append(current)
         #делаем родителя текущей ячейки, текущей ячейкой)))
@@ -146,11 +148,13 @@ def search(start: Tuple, end: Tuple, maze: List[List]) -> Tuple[List, int]:
 
 def example():
     # задаем начальные параметры
-    maze = [[0, 2, 3, 4, 1],
-            [2, 3, 4, 4, 1],
-            [3, 4, 5, 6, 2],
-            [4, 5, 6, 7, 1],
-            [6, 7, 8, 7, 1]]
+    maze = [
+        [1, 2, 6, 9, 9, 4, 6],
+        [2, 3, 4, 5, 5, 1, 1],
+        [5, 6, 3, 9, 1, 3, 5],
+        [3, 1, 1, 1, 1, 3, 6],
+        [4, 2, 1, 1, 6, 6, 5]
+    ];
     # maze = [
     #     [0, 4],
     #     [1, 3]
